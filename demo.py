@@ -185,8 +185,9 @@ print("length of x_train_weight: {} / length of x_val_weight: {}".format(len(x_t
 #    参数
 params = {
     'boosting_type': 'gbdt', 
-    #'n_estimators' : 10,
+    'n_estimators' : 50,
     'objective': 'multiclass',
+    'num_threads': 32,
     'num_class': 10,
     'learning_rate': 0.1, 
     'num_leaves': 50, 
@@ -198,17 +199,25 @@ params = {
 import time
 # 训练 lightGBM模型
 begin_ = time.time()
-if os.path.exists("model.txt"):
-    gbm = lgb.Booster(model_file='model.txt')
+if os.path.exists("gbm_model.txt"):
+    gbm = lgb.Booster(model_file='gbm_model.txt')
 else:
-    gbm = lgb.train(params, data_train, num_boost_round, valid_sets=[data_val],verbose_eval=100)
+    gbm = lgb.train(params, data_train, num_boost_round, valid_sets=[data_val],verbose_eval=10)
 # 预测数据集
+# cv_results = lgb.cv(
+#              params, data_train, num_boost_round=20, nfold=5, stratified=False, shuffle=True,
+#              early_stopping_rounds=100, verbose_eval=4, show_stdv=True, seed=0)
+
+# import pdb;pdb.set_trace()
+# exit()
+
 print("Time consume: ", time.time()-begin_)
-y_pred = gbm.predict(x_test_weight, num_iteration=gbm.best_iteration)
-# 输出预测的训练集
-outfile=pd.DataFrame(y_pred)
-outfile.to_csv("result_cls_3.csv",index=False)
-for n in range(955, 1000):
-    graph = lgb.create_tree_digraph(gbm, tree_index=n, name=f'Tree{n}')
-    graph.render(view=False)
-gbm.save_model('model.txt')
+# y_pred = gbm.predict(x_test_weight, num_iteration=gbm.best_iteration)
+# # 输出预测的训练集
+# outfile=pd.DataFrame(y_pred)
+# outfile.to_csv("result_cls_3.csv",index=False)
+# for n in range(955, 1000):
+#     graph = lgb.create_tree_digraph(gbm, tree_index=n, name=f'Tree{n}')
+#     graph.render(view=False)
+gbm.save_model('gbm_model.txt')
+
